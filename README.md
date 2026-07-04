@@ -1,72 +1,117 @@
-# CognOS — Query API (Backend)
+# CognOS — Institutional Memory Operating System
 
-The brain's output. Receives a question, recalls from Cognee memory, attaches a confidence score, and returns the answer with sources.
+> *Clone any mind. Query forever.*
 
-## Endpoints
+## What is CognOS?
 
-| Method | Path | What it does |
-| --- | --- | --- |
-| GET | `/health` | Check the server is alive |
-| POST | `/ingest` | Store text into memory (`cognee.remember`) |
-| POST | `/ask` | Ask a question (`cognee.recall`) — the main one |
-| POST | `/forget` | Delete a dataset (`cognee.forget`) |
+CognOS is an AI engine that preserves how a person thinks — not just what they wrote, but how they connected ideas, made decisions, and weighed tradeoffs. Feed it any person's data. Ask it anything. Get answers the way that person would have answered, with a confidence score.
 
-### POST /ask
+**Built for the WeMakeDevs × Cognee Hackathon 2026 — Best Use of Open Source track.**
 
-Request:
-```json
-{ "question": "Why did the founder avoid Southeast Asia in 2019?" }
-```
+---
 
-Response:
-```json
-{
-  "answer": "...",
-  "confidence": "high",
-  "confidence_score": 0.82,
-  "sources": ["board_meeting_2019.txt"],
-  "latency_ms": 1240
-}
-```
+## The Problem
 
-## Setup (Windows)
+Every time a key person leaves an organization, their knowledge walks out with them. A founder retires. A CEO passes away. A senior engineer moves on. The reasoning behind years of decisions — gone.
 
-```bat
-cd cognos-api
+Current tools like Notion and Confluence store documents. They cannot store *how someone thinks*.
+
+**The cost is real:**
+- Average cost to replace one employee: **$45,236**
+- Replacing a senior leader costs up to **200% of their annual salary**
+- US businesses lose **$1 trillion per year** from knowledge attrition
+
+---
+
+## The Solution
+
+CognOS ingests any person's data — speeches, emails, interviews, documents — and builds a living knowledge graph using Cognee. When someone asks a question, even one never explicitly answered, the engine traverses the graph and responds the way that person would have.
+
+**What makes CognOS different:**
+
+1. **Knowledge graph, not document search** — stores relationships between ideas, not just text
+2. **Decay engine** — every fact is scored by age, corroboration, and relevance. Old, unreferenced knowledge gets low confidence. Principles repeated across years get high confidence. No other tool does this.
+3. **Person-agnostic** — works with any person's data. Ratan Tata today. Your CEO tomorrow.
+
+---
+
+## Demo
+
+We demonstrate CognOS using Ratan Tata's public speeches, interviews, and documented decisions.
+
+**Demo question:** *"What would be your concerns about expanding into a new Asian market?"*
+
+**CognOS answers:** Based on Ratan Tata's reasoning across 10 documents spanning 2007-2015, drawing on his Southeast Asia decision, his ethics philosophy, and his approach to worker welfare — with a confidence score and source attribution.
+
+---
+
+## Architecture
+**Four components:**
+- `ingest.py` — accepts any folder of .txt files, feeds into Cognee
+- `decay_engine.py` — scores every answer by age, corroboration, and keyword relevance
+- `main.py` — FastAPI backend with /ingest, /ask, /forget endpoints
+- `ui.py` — Streamlit chat interface
+
+---
+
+## Tech Stack
+
+| Tool | Purpose | Cost |
+|------|---------|------|
+| Cognee (open source) | Knowledge graph + memory engine | Free |
+| Groq (Llama 3.3 70B) | LLM inference | Free |
+| FastAPI | Backend API | Free |
+| Streamlit | Frontend UI | Free |
+| fastembed | Embeddings | Free |
+
+---
+
+## Setup
+
+```bash
+git clone https://github.com/Piyusheror/cognos.git
+cd cognos
 python -m venv venv
 venv\Scripts\activate
 pip install -r requirements.txt
+pip install "cognee[fastembed]"
 copy .env.example .env
-:: now open .env and paste your real Groq key
+# Add your Groq API key to .env
 ```
 
-Note: if `pip install cognee` fails on Python 3.13, install Python 3.12 and recreate the venv with `py -3.12 -m venv venv`. Cognee is newest-Python-sensitive.
-
-## Run
-
-```bat
+**Run:**
+```bash
+# Terminal 1 — start the backend
 uvicorn main:app --reload --port 8000
+
+# Terminal 2 — ingest data
+python ingest.py --folder data
+
+# Terminal 3 — start the UI
+streamlit run ui.py
 ```
 
-Then open http://localhost:8000/docs — FastAPI gives you a free interactive playground where you can test every endpoint from the browser (great for the demo).
+---
 
-## Test end-to-end
+## The Decay Engine
 
-In a second terminal (with venv activated):
+The decay engine is CognOS's secret weapon. Every answer from Cognee is scored using three signals:
 
-```bat
-python test_api.py
-```
+| Signal | Weight | What it measures |
+|--------|--------|-----------------|
+| Age decay | 35% | How recent is the source? Newer = higher confidence |
+| Corroboration | 35% | How many sources agree? More = higher confidence |
+| Keyword relevance | 30% | Do the answer's key terms match the question? |
 
-This stores two facts, then asks a question and prints the answer + confidence.
+Final score maps to: **HIGH** (≥0.7) · **MEDIUM** (≥0.4) · **LOW** (<0.4)
 
-## How the decay engine plugs in (for Person 2)
+---
 
-`confidence.py` tries to `import decay_engine`. If your teammate creates a file `decay_engine.py` with this function, the API automatically uses it:
+## Team
 
-```python
-def get_decay_score(question: str, answer: str, sources: list) -> float:
-    """Return a confidence score between 0.0 and 1.0"""
-```
+Built at the WeMakeDevs × Cognee Hackathon, July 2026.
 
-Until then, a built-in heuristic (result count, answer length, keyword overlap, source presence) keeps the API fully working — so integration day is a file drop, not a rewrite.
+- Decay engine & ML architecture
+- Query API & backend
+- Data ingestion pipeline  
+- Frontend UI
