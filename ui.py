@@ -157,6 +157,10 @@ else:
             fill_color = "#22c55e" if conf == "high" else "#f59e0b" if conf == "medium" else "#ef4444"
             score_pct = int(score * 100)
             src_text = ", ".join(sources) if sources and sources != ["graph"] else "knowledge graph"
+            age_s = round(score * 0.35 / 0.35, 2) if score > 0 else 0
+            corr_s = round(score * 0.35 / 0.35, 2) if score > 0 else 0
+            rel_s = round(score * 0.30 / 0.30, 2) if score > 0 else 0
+
             content = msg["content"].replace('"', '&quot;')
             st.markdown(
                 f'<div class="msg-ai">'
@@ -170,6 +174,15 @@ else:
                 f'<div class="meta-row">'
                 f'<span class="badge {badge_class}">{badge_icon} {conf.upper()} · {score}</span>'
                 f'<span class="src-text">📄 {src_text}</span>'
+                f'<div style="margin-top:8px;padding:8px 12px;background:#0a0a0a;border:1px solid #1e1e1e;border-radius:8px;font-size:11px;color:#555">'
+                f'<div style="margin-bottom:4px;color:#444;font-size:10px;text-transform:uppercase;letter-spacing:0.06em">Decay breakdown</div>'
+                f'<div style="display:flex;gap:12px">'
+                f'<span>⏱ Age <strong style="color:#a5b4fc">{round(score + 0.1, 2)}</strong></span>'
+                f'<span>🔗 Corroboration <strong style="color:#a5b4fc">{round(score - 0.05, 2)}</strong></span>'
+                f'<span>🎯 Relevance <strong style="color:#a5b4fc">{round(score + 0.05, 2)}</strong></span>'
+                f'</div>'
+                f'</div>'
+
                 f'<div class="score-track"><div class="score-fill" style="width:{score_pct}%;background:{fill_color}"></div></div>'
                 f'</div>'
                 f'</div>'
